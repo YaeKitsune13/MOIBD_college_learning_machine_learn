@@ -1,0 +1,15 @@
+conda deactivate
+conda env remove -n r_ml --all
+conda create -n r_ml -c conda-forge python=3.11 r-base=4.3 r-irkernel jupyter r-ggplot2 r-dplyr r-mgcv r-nlme -y
+conda activate r_ml
+C:\Users\yaeKi\.conda\envs\r_ml\Scripts\R.exe
+
+#В R:
+R
+
+IRkernel::installspec(user = TRUE)
+quit()
+
+#Проверка:
+
+jupyter kernelspec list
