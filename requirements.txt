@@ -8,3 +8,10 @@ bs4
 requests
 pdfplumber
 ipykernel
+playwright 
+beautifulsoup4 
+playwright-stealth
+deep_translator
+reportlab
+selenium
+PyMuPDF
