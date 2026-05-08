@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paws & Claws Veterinary Clinic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables and Global Reset */
+        :root {
+            --primary-green: #4CAF50;
+            --secondary-light: #E8F5E9;
+            --text-dark: #333;
+            --text-light: #ffffff;
+            --shadow-depth: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #ffffff;
+        }
+
+        /* Utility Classes */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ==============================
+           HEADER AND NAVIGATION
+           ============================== */
+        header {
+            background-color: var(--primary-green);
+            color: var(--text-light);
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo span {
+            font-size: 2.5rem;
+            margin-right: 8px;
+        }
+
+        /* ==============================
+           CHECKBOX SIDEBAR HACK (NO JS)
+           ============================== */
+
+        /* The actual checkbox input */
+        #toggle {
+            display: none; /* Hidden visually */
+        }
+
+        /* The toggle button label */
+        #menu-toggle {
+            cursor: pointer;
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            margin-right: 20px;
+            transition: transform 0.3s;
+        }
+        #menu-toggle:hover {
+            opacity: 0.9;
+        }
+
+        /* Layout Wrapper */
+        .layout-wrapper {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        /* The Sidebar container */
+        .sidebar {
+            position: sticky;
+            top: 80px; /* Below the fixed header */
+            height: calc(100vh - 80px); /* Occupy remaining viewport height */
+            width: 250px;
+            flex-shrink: 0;
+            background-color: var(--secondary-light);
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        /* State changes when checkbox is checked */
+        #toggle:checked ~ .sidebar {
+            width: 60px; /* Collapsed width */
+        }
+        #toggle:checked ~ .sidebar .nav-text {
+            display: none; /* Hide text when collapsed */
+            opacity: 0;
+            transition: none;
+        }
+
+        /* Sidebar Links */
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            color: var(--text-dark);
+            background-color: var(--text-light);
+            border-radius: 8px;
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+            border: 1px solid #eee;
+        }
+
+        .sidebar li a:hover {
+            background-color: var(--primary-green);
+            color: var(--text-light);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar i {
+            font-size: 1.2rem;
+            margin-right: 15px;
+            transition: margin-right 0.3s;
+        }
+        
+        /* Styling when collapsed (adjusting spacing) */
+        #toggle:checked ~ .sidebar li a {
+            justify-content: center;
+            text-align: center;
+        }
+        #toggle:checked ~ .sidebar .nav-text {
+            display: none; /* Ensure text is gone */
+        }
+        #toggle:checked ~ .sidebar i {
+             margin-right: 0;
+        }
+
+        /* ==============================
+           MAIN CONTENT SECTIONS
+           ============================== */
+
+        main {
+            flex-grow: 1;
+            padding: 40px 0;
+            min-height: 70vh; /* Ensure enough space for sections */
+        }
+
+        section {
+            padding: 40px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            color: var(--primary-green);
+        }
+
+        /* Hero/Banner Styling */
+        #hero {
+            background: linear-gradient(135deg, var(--secondary-light), var(--text-light));
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        #hero h1 {
+            font-size: 3rem;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        #hero p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-green);
+            color: var(--text-light);
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:hover {
+            background-color: #388E3C; /* Darker green */
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Services Grid */
+        #services .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background-color: var(--text-light);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-depth);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-top: 4px solid var(--primary-green);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.15);
+        }
+
+        .card h3 {
+            color: var(--primary-green);
+            margin-bottom: 10px;
+        }
+
+        .card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+            color: #FFA000; /* Accent color for icons */
+        }
+
+        /* Contact Section Layout */
+        #contact-info .content-grid {
+            display: flex;
+            gap: 50px;
+            align-items: flex-start;
+        }
+
+        #contact-info .contact-details, #contact-info .hours {
+            flex: 1;
+            padding: 20px;
+            background-color: var(--secondary-light);
+            border-radius: 8px;
+        }
+        
+        #contact-info h3 {
+            color: var(--primary-green);
+            margin-bottom: 15px;
+        }
+
+
+        /* ==============================
+           RESPONSIVENESS (Mobile First)
+           ============================== */
+        @media (max-width: 992px) {
+            /* Adjust sidebar for smaller screens */
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                box-shadow: none;
+                padding: 15px 0 15px 0;
+            }
+
+            /* Re-evaluate the checkbox hack behavior for mobile */
+            /* When stacked, the sidebar should behave like a mobile menu */
+            #toggle:checked ~ .sidebar {
+                width: auto;
+                /* Optional: You might need to use position: fixed and transform if full mobile overlay is desired, 
+                but for a simple collapse/expand, keeping it relative works well. */
+            }
+            
+            /* Force the sidebar to become full width and hide the main menu toggle button */
+            .layout-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            /* Hide the menu toggle when the sidebar is full width */
+            .menu-toggle-wrapper {
+                display: block;
+            }
+            
+            /* Ensure the sidebar text is visible on mobile */
+            #toggle:checked ~ .sidebar .nav-text {
+                display: inline;
+            }
+            #toggle:checked ~ .sidebar {
+                /* Reset width to auto to allow full text visibility */
+                width: auto; 
+            }
+
+            /* Adjust overall section padding */
+            main {
+                padding: 20px 0;
+            }
+            
+            /* Contact layout stacks columns */
+            #contact-info .content-grid {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 600px) {
+            /* Small screen optimizations */
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            #hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            /* Smaller cards on tiny screens */
+            .card {
+                margin-bottom: 20px;
+            }
+            
+            /* Make the menu toggle prominent */
+            .menu-toggle-wrapper {
+                display: flex;
+                align-items: center;
+                width: 100%;
+                justify-content: space-between;
+                padding-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Pure CSS Sidebar Toggle Checkbox Hack -->
+    <input type="checkbox" id="toggle" hidden>
+
+    <header>
+        <div class="logo">
+            <span>🐾</span> Paws & Claws Vet
+        </div>
+        
+        <!-- This label acts as the clickable menu toggle button -->
+        <label for="toggle" id="menu-toggle" class="menu-toggle-wrapper">
+            <button aria-label="Menu Toggle">☰</button>
+        </label>
+    </header>
+
+    <div class="container layout-wrapper">
+        
+        <!-- COLLAPSIBLE SIDEBAR (Using pure CSS selector sibling) -->
+        <nav class="sidebar">
+            <ul>
+                <li><a href="#home">🏠 <span class="nav-text">Home</span></a></li>
+                <li><a href="#services">🩺 <span class="nav-text">Services</span></a></li>
+                <li><a href="#about">ℹ️ <span class="nav-text">About Us</span></a></li>
+                <li><a href="#contact">📞 <span class="nav-text">Contact</span></a></li>
+            </ul>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main>
+            
+            <!-- HERO SECTION -->
+            <section id="hero">
+                <h1>Compassionate Care for Your Pet Family</h1>
+                <p>Dedicated veterinary expertise right in your neighborhood. Healthy pets, happy lives.</p>
+                <a href="#services" class="btn-primary">Book a Free Consultation</a>
+            </section>
+
+            <!-- SERVICES SECTION -->
+            <section id="services">
+                <h2>Our Comprehensive Services</h2>
+                <div class="grid-container">
+                    
+                    <!-- Card 1: General Checkups -->
+                    <div class="card">
+                        <i>🩺</i>
+                        <h3>Preventative Care</h3>
+                        <p>Routine annual check-ups, vaccinations, and dental cleanings to keep your pet thriving.</p>
+                    </div>
+
+                    <!-- Card 2: Surgery/Emergency -->
+                    <div class="card">
+                        <i>🩹</i>
+                        <h3>Emergency & Surgery</h3>
+                        <p>24/7 care for critical situations, including advanced diagnostics and minor surgeries.</p>
+                    </div>
+
+                    <!-- Card 3: Wellness/Nutrition -->
+                    <div class="card">
+                        <i>🍎</i>
+                        <h3>Nutrition & Diet</h3>
+                        <p>Personalized wellness plans focusing on optimal diet and sustained energy for longevity.</p>
+                    </div>
+
+                    <!-- Card 4: Exotic Pets -->
+                    <div class="card">
+                        <i>🦎</i>
+                        <h3>Exotic Animal Care</h3>
+                        <p>We provide specialized care for birds, reptiles, and other non-traditional companions.</p>
+                    </div>
+
+                </div>
+            </section>
+            
+            <!-- ABOUT SECTION -->
+            <section id="about" style="background-color: var(--secondary-light);">
+                <h2>Why Choose Us?</h2>
+                <div class="container" style="max-width: 900px; text-align: center;">
+                    <p style="font-size: 1.1rem; margin-bottom: 20px;">
+                        Paws & Claws is built on the foundation of trust and empathy. Our team of highly experienced veterinarians and certified technicians treat every animal as if they were our own. We believe in preventative medicine and transparent communication with pet owners.
+                    </p>
+                    <div style="display: flex; justify-content: space-around; margin-top: 30px;">
+                        <div style="flex-basis: 30%; text-align: center;">⭐ *Award-Winning Care*</div>
+                        <div style="flex-grow: 1; text-align: center;">&nbsp;</div>
+                        <div style="flex-grow: 1; text-align: center;">&nbsp;</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- CONTACT SECTION -->
+            <section id="contact">
+                <div style="max-width: 900px; margin: 0 auto; padding-bottom: 50px;">
+                    <h2 style="text-align: center; margin-bottom: 40px;">Book an Appointment Today</h2>
+                    <div style="display: flex; justify-content: space-around; gap: 30px; text-align: center;">
+                        
+                        <div style="flex: 1; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                            <h3 style="color: #333;">📞 Call Us</h3>
+                            <p style="font-size: 1.5em; margin: 10px 0;">(555) 123-4567</p>
+                        </div>
+                        
+                        <div style="flex: 1; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                            <h3 style="color: #333;">📍 Visit Us</h3>
+                            <p style="font-size: 1.1em;">123 Pet Friend Ln, Anytown, USA</p>
+                            <p style="font-size: 1.1em;">Open Daily: 8:00 AM - 6:00 PM</p>
+                        </div>
+
+                        <div style="flex: 1; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                            <h3 style="color: #333;">📧 Email Us</h3>
+                            <p style="font-size: 1.1em;">info@petfriend.com</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </body>
+</html>
