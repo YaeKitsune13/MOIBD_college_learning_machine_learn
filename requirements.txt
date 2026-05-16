@@ -20,3 +20,7 @@ wordcloud
 jupyter
 torch
 torchvision
+fastapi
+uvicorn
+joblib
+streamlit
