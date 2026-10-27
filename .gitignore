@@ -1,2 +1,12 @@
 ./venv
 /venv
+/movie-recommender/data/*
+*/.ipynb_checkpoints
+*/.vscode
+*/.idea
+./.idea
+*/*.db
+*/*.db-*
+*.db
+*.db-shm
+*.db-wal
