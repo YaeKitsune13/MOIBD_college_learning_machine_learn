@@ -3,17 +3,20 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>MovieRecs — Аналитическая рекомендательная система</title>
+        <title>MovieRecs — Рекомендательная система</title>
         <style>
             :root {
-                --bg: #0f172a;
-                --card: #1e293b;
-                --border: #334155;
-                --text: #f8fafc;
-                --muted: #94a3b8;
-                --accent: #38bdf8;
-                --gold: #fbbf24;
-                --green: #4ade80;
+                --bg: #111318;
+                --surface: #1e2025;
+                --surface-hover: #282a2f;
+                --border: #33363e;
+                --text: #e2e2e9;
+                --muted: #90949f;
+                --primary: #a8c7fa;
+                --on-primary: #062e6f;
+                --badge-bg: #1b3a24;
+                --badge-text: #8ce99a;
+                --star: #fbbc04;
             }
             * {
                 box-sizing: border-box;
@@ -27,199 +30,207 @@
                     sans-serif;
                 background: var(--bg);
                 color: var(--text);
-                line-height: 1.5;
-                padding-bottom: 60px;
+                line-height: 1.45;
             }
-            header {
-                background: rgba(30, 41, 59, 0.95);
-                backdrop-filter: blur(8px);
-                border-bottom: 1px solid var(--border);
-                padding: 14px 24px;
-                position: sticky;
-                top: 0;
-                z-index: 10;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: space-between;
-                align-items: center;
-                gap: 16px;
-            }
-            .logo-wrap {
-                display: flex;
-                align-items: center;
-                gap: 14px;
-                flex-wrap: wrap;
-            }
-            .logo {
-                font-size: 1.2rem;
-                font-weight: 700;
-                color: var(--accent);
-            }
-            .stats-bar {
-                font-size: 0.8rem;
-                color: var(--muted);
-                background: var(--bg);
-                padding: 4px 10px;
-                border-radius: 6px;
-                border: 1px solid var(--border);
-            }
-            .controls {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            select,
-            input,
-            button {
-                background: var(--bg);
-                color: var(--text);
-                border: 1px solid var(--border);
-                padding: 7px 11px;
-                border-radius: 6px;
-                font-size: 0.86rem;
-            }
-            button {
-                cursor: pointer;
-                transition: 0.15s;
-            }
-            .btn-primary {
-                background: var(--accent);
-                color: var(--bg);
-                border-color: var(--accent);
-                font-weight: 600;
-            }
-            .btn-primary:hover {
-                opacity: 0.9;
-            }
-            .btn-outline {
-                border-color: var(--accent);
-                color: var(--accent);
-            }
-            .btn-outline:hover {
-                background: var(--accent);
-                color: var(--bg);
-            }
-
-            .params-panel {
-                background: var(--card);
-                border-bottom: 1px solid var(--border);
-                padding: 10px 24px;
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                gap: 16px;
-                font-size: 0.83rem;
-            }
-            .param-item {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .param-item input {
-                width: 70px;
-                padding: 4px 8px;
-            }
-
-            main {
-                max-width: 1320px;
+            .container {
+                max-width: 1120px;
                 margin: 0 auto;
-                padding: 24px;
+                padding: 20px;
             }
-            section {
-                margin-bottom: 42px;
+
+            /* Шапка */
+            header {
+                background: var(--surface);
+                border-bottom: 1px solid var(--border);
+                padding: 12px 20px;
             }
-            .section-header {
+            .header-inner {
+                max-width: 1120px;
+                margin: 0 auto;
                 display: flex;
                 flex-wrap: wrap;
                 justify-content: space-between;
                 align-items: center;
                 gap: 12px;
-                margin-bottom: 16px;
-                border-bottom: 1px solid var(--border);
-                padding-bottom: 10px;
             }
-            h2 {
-                font-size: 1.25rem;
+            .logo {
+                font-size: 1.15rem;
+                font-weight: 600;
+                color: var(--primary);
             }
-            .subtitle {
+            .stats {
+                font-size: 0.8rem;
                 color: var(--muted);
+            }
+            .row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            /* Элементы управления MD3 */
+            select,
+            input,
+            button {
+                font: inherit;
+                font-size: 0.85rem;
+                background: var(--bg);
+                color: var(--text);
+                border: 1px solid var(--border);
+                padding: 7px 14px;
+                border-radius: 999px;
+                outline: none;
+            }
+            select:focus,
+            input:focus {
+                border-color: var(--primary);
+            }
+            button {
+                cursor: pointer;
+                font-weight: 500;
+                transition: 0.15s;
+            }
+            .btn-primary {
+                background: var(--primary);
+                color: var(--on-primary);
+                border-color: transparent;
+            }
+            .btn-Ghost:hover {
+                background: var(--surface-hover);
+            }
+
+            /* Навигационные вкладки (Segmented Tabs) */
+            .tabs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                background: var(--surface);
+                padding: 6px;
+                border-radius: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 16px;
+            }
+            .tab {
+                flex: 1;
+                min-width: 150px;
+                text-align: center;
+                padding: 9px 12px;
+                border-radius: 12px;
+                border: none;
+                background: transparent;
+                color: var(--muted);
+            }
+            .tab:hover {
+                color: var(--text);
+                background: var(--surface-hover);
+            }
+            .tab.active {
+                background: var(--primary);
+                color: var(--on-primary);
+                font-weight: 600;
+            }
+
+            /* Скрываемые панели (параметры и выбор фильма) */
+            .panel {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 14px;
+                padding: 12px 16px;
+                margin-bottom: 16px;
+                display: none;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 12px;
                 font-size: 0.84rem;
             }
+            .panel.show {
+                display: flex;
+            }
+            .param-group {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                color: var(--muted);
+            }
+            .param-group input {
+                width: 68px;
+                padding: 4px 8px;
+                text-align: center;
+            }
+
+            .info-box {
+                margin-bottom: 16px;
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .info-box h2 {
+                font-size: 1.15rem;
+                font-weight: 500;
+            }
+            .info-box p {
+                font-size: 0.85rem;
+                color: var(--muted);
+            }
+
+            .cold-banner {
+                background: #3b2f00;
+                border: 1px solid #7a6200;
+                color: #ffe082;
+                padding: 10px 16px;
+                border-radius: 12px;
+                margin-bottom: 16px;
+                font-size: 0.85rem;
+                display: none;
+            }
+
+            /* Сетка карточек */
             .grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
-                gap: 16px;
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                gap: 14px;
             }
             .card {
-                background: var(--card);
+                background: var(--surface);
                 border: 1px solid var(--border);
-                border-radius: 10px;
-                padding: 15px;
+                border-radius: 16px;
+                padding: 16px;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                transition:
-                    transform 0.15s,
-                    border-color 0.15s;
+                gap: 12px;
             }
             .card:hover {
-                transform: translateY(-3px);
-                border-color: var(--accent);
+                border-color: var(--muted);
             }
             .card-title {
-                font-weight: 600;
-                font-size: 0.96rem;
-                margin-bottom: 8px;
+                font-weight: 500;
+                font-size: 0.95rem;
+                margin-bottom: 4px;
             }
-            .genres {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 4px;
-                margin-bottom: 10px;
-            }
-            .genre-tag {
-                background: rgba(56, 189, 248, 0.12);
-                color: var(--accent);
-                font-size: 0.7rem;
-                padding: 2px 6px;
-                border-radius: 4px;
-            }
-            .meta {
-                font-size: 0.8rem;
+            .card-sub {
+                font-size: 0.78rem;
                 color: var(--muted);
-                margin-bottom: 10px;
-                display: flex;
-                justify-content: space-between;
+                margin-bottom: 8px;
             }
             .badge {
                 display: inline-block;
-                background: rgba(74, 222, 128, 0.14);
-                color: var(--green);
-                font-size: 0.76rem;
-                font-weight: 600;
-                padding: 4px 8px;
-                border-radius: 6px;
-                margin-bottom: 12px;
+                background: var(--badge-bg);
+                color: var(--badge-text);
+                font-size: 0.75rem;
+                padding: 3px 9px;
+                border-radius: 8px;
             }
-            .actions {
+            .card-bottom {
                 border-top: 1px solid var(--border);
                 padding-top: 10px;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }
-            .btn-similar {
-                background: transparent;
-                color: var(--accent);
-                border: 1px solid var(--accent);
-                padding: 3px 8px;
-                border-radius: 5px;
-                font-size: 0.76rem;
-            }
-            .btn-similar:hover {
-                background: var(--accent);
-                color: var(--bg);
             }
             .stars {
                 display: flex;
@@ -227,527 +238,460 @@
             }
             .star {
                 cursor: pointer;
+                font-size: 1.2rem;
                 color: var(--border);
-                font-size: 1.15rem;
                 user-select: none;
             }
             .star.active,
             .star:hover {
-                color: var(--gold);
+                color: var(--star);
             }
-            .cold-start-banner {
-                background: rgba(251, 191, 36, 0.12);
-                border: 1px solid var(--gold);
-                color: var(--gold);
-                padding: 12px 16px;
-                border-radius: 8px;
-                margin-bottom: 16px;
-                font-size: 0.88rem;
-                display: none;
+            .btn-mini {
+                padding: 4px 10px;
+                font-size: 0.75rem;
             }
 
-            /* Модальное окно справки (Пункт 5 ТЗ) */
-            .modal-backdrop {
+            /* Модальное окно справки */
+            .modal-bg {
                 position: fixed;
                 inset: 0;
                 background: rgba(0, 0, 0, 0.7);
                 display: none;
                 justify-content: center;
                 align-items: center;
-                z-index: 100;
-                padding: 20px;
+                z-index: 50;
+                padding: 16px;
             }
             .modal {
-                background: var(--card);
+                background: var(--surface);
                 border: 1px solid var(--border);
-                border-radius: 12px;
-                max-width: 760px;
+                border-radius: 20px;
+                max-width: 680px;
                 width: 100%;
                 max-height: 85vh;
                 overflow-y: auto;
                 padding: 24px;
             }
             .modal h3 {
-                color: var(--accent);
-                margin: 16px 0 6px;
-                font-size: 1.05rem;
+                color: var(--primary);
+                margin: 14px 0 6px;
+                font-size: 0.95rem;
             }
-            .modal p,
-            .modal li {
-                font-size: 0.9rem;
-                color: var(--text);
+            .modal li,
+            .modal p {
+                font-size: 0.85rem;
+                color: var(--muted);
                 margin-bottom: 6px;
             }
             .modal ul {
-                padding-left: 20px;
-                margin-bottom: 12px;
+                padding-left: 18px;
             }
-            .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid var(--border);
-                padding-bottom: 12px;
+            .modal code {
+                color: var(--text);
+                background: var(--bg);
+                padding: 1px 6px;
+                border-radius: 4px;
             }
         </style>
     </head>
     <body>
         <header>
-            <div class="logo-wrap">
-                <div class="logo">MovieRecs</div>
-                <div id="statsBar" class="stats-bar">
-                    Загрузка статистики...
+            <div class="header-inner">
+                <div>
+                    <div class="logo">MovieRecs</div>
+                    <div id="statsBar" class="stats">Загрузка...</div>
                 </div>
-            </div>
-            <div class="controls">
-                <label for="userSelect">Пользователь:</label>
-                <select id="userSelect"></select>
-                <button
-                    id="btnNewUser"
-                    class="btn-outline"
-                    title="Создать нового пользователя с 0 оценок для проверки холодного старта"
-                >
-                    + Новый профиль
-                </button>
-                <button id="btnHelp" class="btn-primary">
-                    ? Справка по функционалу и параметрам
-                </button>
+                <div class="row">
+                    <select
+                        id="userSelect"
+                        title="Текущий пользователь"
+                    ></select>
+                    <button
+                        id="btnNewUser"
+                        class="btn-Ghost"
+                        title="Создать профиль с 0 оценок"
+                    >
+                        + Новый
+                    </button>
+                    <button id="btnToggleParams" class="btn-Ghost">
+                        ⚙ Параметры
+                    </button>
+                    <button id="btnHelp" class="btn-primary">? Справка</button>
+                </div>
             </div>
         </header>
 
-        <!-- Динамические параметры алгоритмов (без хардкода) -->
-        <div class="params-panel">
-            <strong>Параметры модели:</strong>
-            <div class="param-item">
-                <label for="paramLimit">Кол-во (Limit):</label>
-                <input
-                    type="number"
-                    id="paramLimit"
-                    value="10"
-                    min="1"
-                    max="50"
-                />
+        <div class="container">
+            <!-- Скрытая панель параметров (открывается по кнопке ⚙ Параметры) -->
+            <div id="paramsPanel" class="panel">
+                <div class="param-group">
+                    Топ (Limit):
+                    <input
+                        type="number"
+                        id="pLimit"
+                        value="10"
+                        min="1"
+                        max="50"
+                    />
+                </div>
+                <div class="param-group">
+                    Соседей (K):
+                    <input type="number" id="pK" value="30" min="1" max="200" />
+                </div>
+                <div class="param-group">
+                    Сходство:
+                    <input type="number" id="pSim" value="0.15" step="0.05" />
+                </div>
+                <div class="param-group">
+                    Мин. оценок:
+                    <input type="number" id="pVotes" value="2" min="1" />
+                </div>
+                <div class="param-group">
+                    Байес (m):
+                    <input type="number" id="pBayes" value="20" min="1" />
+                </div>
+                <button id="btnApply" class="btn-primary">Применить</button>
             </div>
-            <div class="param-item">
-                <label for="paramK">Соседей KNN (K):</label>
-                <input type="number" id="paramK" value="30" min="1" max="200" />
+
+            <div class="tabs">
+                <button class="tab active" data-tab="personal">
+                    1. Персональные
+                </button>
+                <button class="tab" data-tab="userCF">
+                    2. По пользователям (CF)
+                </button>
+                <button class="tab" data-tab="itemCF">
+                    3. По фильмам (CF)
+                </button>
+                <button class="tab" data-tab="content">
+                    4. По контенту (Жанры)
+                </button>
+                <button class="tab" data-tab="top">5. Топ-10 популярных</button>
             </div>
-            <div class="param-item">
-                <label for="paramMinSim">Мин. сходство:</label>
-                <input
-                    type="number"
-                    id="paramMinSim"
-                    value="0.15"
-                    step="0.05"
-                    min="0.05"
-                    max="0.95"
-                />
+
+            <!-- Панель выбора фильма (показывается ТОЛЬКО во вкладках 3 и 4) -->
+            <div id="movieBar" class="panel">
+                <strong>Выберите фильм для поиска похожих:</strong>
+                <div class="row">
+                    <input
+                        type="text"
+                        id="movieSearch"
+                        placeholder="Быстрый поиск фильма..."
+                    />
+                    <select id="movieSelect"></select>
+                </div>
             </div>
-            <div class="param-item">
-                <label for="paramMinVotes">Мин. голосов:</label>
-                <input
-                    type="number"
-                    id="paramMinVotes"
-                    value="2"
-                    min="1"
-                    max="100"
-                />
+
+            <!-- Плашка холодного старта -->
+            <div id="coldBanner" class="cold-banner">
+                У выбранного пользователя пока 0 оценок (Холодный старт) —
+                показан популярный топ. Поставьте оценку ★ любому фильму!
             </div>
-            <div class="param-item">
-                <label for="paramBayesM">Сглаживание Байеса (m):</label>
-                <input
-                    type="number"
-                    id="paramBayesM"
-                    value="20"
-                    min="1"
-                    max="500"
-                />
+
+            <!-- Заголовок текущего раздела -->
+            <div class="info-box">
+                <h2 id="sectionTitle">Персональные рекомендации</h2>
+                <p id="sectionDesc">
+                    Подборка на основе оцененных вами жанров и популярности
+                    фильмов
+                </p>
             </div>
-            <button id="btnApplyParams" class="btn-outline">Применить</button>
+
+            <!-- Единая сетка карточек -->
+            <div id="mainGrid" class="grid"></div>
         </div>
 
-        <main>
-            <!-- 1. Коллаборативная фильтрация (User-Based KNN) -->
-            <section>
-                <div class="section-header">
-                    <div>
-                        <h2>1. Коллаборативная фильтрация (User-Based KNN)</h2>
-                        <div class="subtitle">
-                            Поиск похожих пользователей по матрице оценок
-                            (инвертированный индекс + косинусная мера)
-                        </div>
-                    </div>
-                </div>
-                <div id="coldStartBanner" class="cold-start-banner">
-                    Режим «Холодного старта»: у выбранного пользователя 0
-                    оценок. Выведен глобальный топ популярных фильмов. Поставьте
-                    оценку любому фильму звёздочками, и алгоритмы мгновенно
-                    пересчитают персональную выдачу!
-                </div>
-                <div id="personalGrid" class="grid"></div>
-            </section>
-
-            <!-- 2. Рекомендации пользователю по его оценкам (Профиль вкусов) -->
-            <section>
-                <div class="section-header">
-                    <div>
-                        <h2>
-                            2. Рекомендации пользователю (по его собственным
-                            оценкам)
-                        </h2>
-                        <div class="subtitle">
-                            Векторная модель предпочтений пользователя на основе
-                            высоко оцененных им жанров и рейтинга фильмов
-                        </div>
-                    </div>
-                </div>
-                <div id="byRatingsGrid" class="grid"></div>
-            </section>
-
-            <!-- 3. Прогнозирование по контенту (Content-Based) -->
-            <section id="contentSection">
-                <div class="section-header">
-                    <div>
-                        <h2>
-                            3. Прогнозирование фильмов по контенту
-                            (Content-Based)
-                        </h2>
-                        <div class="subtitle">
-                            Косинусное сходство нормализованных векторов жанров
-                            относительно выбранного фильма
-                        </div>
-                    </div>
-                    <div class="controls">
-                        <input
-                            type="text"
-                            id="movieSearch"
-                            placeholder="Поиск фильма или жанра..."
-                        />
-                        <select id="movieSelect"></select>
-                    </div>
-                </div>
-                <div id="contentGrid" class="grid"></div>
-            </section>
-
-            <!-- 4. Топ популярных фильмов -->
-            <section>
-                <div class="section-header">
-                    <div>
-                        <h2>4. Топ популярных фильмов</h2>
-                        <div class="subtitle">
-                            Взвешенная формула Байеса (IMDB Weighted Rating) по
-                            всей базе данных
-                        </div>
-                    </div>
-                </div>
-                <div id="topGrid" class="grid"></div>
-            </section>
-        </main>
-
-        <!-- Модальное окно справки (Пункт 5 ТЗ) -->
-        <div id="helpModal" class="modal-backdrop">
+        <div id="helpModal" class="modal-bg">
             <div class="modal">
-                <div class="modal-header">
-                    <h2>Справка по функционалу и параметрам системы</h2>
-                    <button id="btnCloseHelp" class="btn-outline">
+                <div
+                    class="row"
+                    style="
+                        justify-content: space-between;
+                        border-bottom: 1px solid var(--border);
+                        padding-bottom: 10px;
+                    "
+                >
+                    <strong>Справка по системе и командам API</strong>
+                    <button id="btnCloseHelp" class="btn-Ghost">
                         Закрыть ✕
                     </button>
                 </div>
-                <h3>1. Назначение и архитектура</h3>
+                <h3>Как пользоваться приложением</h3>
                 <p>
-                    Приложение реализует гибридную рекомендательную систему
-                    фильмов на основе очищенного датасета MovieLens. Все
-                    вычисления выполняются в оперативной памяти (RAM) с
-                    использованием предрасчитанных L2-норм и инвертированного
-                    индекса.
+                    Переключайте вкладки сверху, чтобы протестировать все
+                    алгоритмы из Технического Задания. Нажимайте на звёздочки
+                    (1–5 ★) на любой карточке — оценка мгновенно сохранится в
+                    базу данных SQLite, а рекомендации пересчитаются.
                 </p>
 
-                <h3>2. Описание алгоритмов (Пункт 4 ТЗ)</h3>
+                <h3>Команды API</h3>
                 <ul>
                     <li>
-                        <strong>Топ популярных фильмов:</strong> рассчитывается
-                        по формуле Байесовского среднего $WR = \frac{v}{v+m}R +
-                        \frac{m}{v+m}C$, где $R$ — средний рейтинг фильма, $v$ —
-                        число оценок, $m$ — минимальный порог оценок, $C$ —
-                        средняя оценка по всей базе. Это защищает топ от фильмов
-                        с одной оценкой 5.0.
+                        <code>GET /api/movies/top</code> — Топ-10 популярных
+                        фильмов (формула Байеса).
                     </li>
                     <li>
-                        <strong
-                            >Коллаборативная фильтрация (User-Based
-                            KNN):</strong
-                        >
-                        находит $K$ наиболее близких по вкусам пользователей с
-                        помощью косинусного сходства векторов оценок и
-                        прогнозирует рейтинг непросмотренных фильмов как
-                        средневзвешенное оценок соседей.
+                        <code>GET /api/users/:id/collaborative</code> —
+                        Коллаборативная фильтрация по пользователям (User-Based
+                        KNN).
                     </li>
                     <li>
-                        <strong
-                            >Рекомендации пользователю по его оценкам:</strong
-                        >
-                        формирует персональный профиль предпочтений пользователя
-                        (взвешенный вектор жанров на основе выставленных им
-                        оценок) и подбирает фильмы с максимальным сходством.
+                        <code>GET /api/movies/:id/collaborative</code> —
+                        Коллаборативная фильтрация по фильмам (Item-Based CF).
                     </li>
                     <li>
-                        <strong
-                            >Прогнозирование по контенту
-                            (Content-Based):</strong
-                        >
-                        переводит жанры каждого фильма в бинарный вектор
-                        признаков и находит ближайшие фильмы по косинусной мере
-                        сходства.
+                        <code>GET /api/movies/:id/content</code> — Рекомендации
+                        по контенту (сходство жанров).
+                    </li>
+                    <li>
+                        <code>GET /api/users/:id/personal</code> — Персональные
+                        рекомендации (профиль вкусов).
+                    </li>
+                    <li>
+                        <code>POST /api/ratings</code> — Сохранение оценки
+                        фильма в БД.
                     </li>
                 </ul>
 
-                <h3>3. Настраиваемые параметры модели</h3>
+                <h3>Параметры алгоритмов (кнопка «⚙ Параметры»)</h3>
                 <ul>
                     <li>
-                        <strong>Кол-во (Limit):</strong> количество возвращаемых
-                        рекомендаций в каждом блоке (по умолчанию 10).
+                        <code>limit</code> — количество выводимых фильмов (по
+                        умолчанию 10).
                     </li>
                     <li>
-                        <strong>Соседей KNN (K):</strong> размер окрестности
-                        самых похожих пользователей при коллаборативной
-                        фильтрации (по умолчанию 30).
+                        <code>k</code> — число ближайших соседей для KNN (по
+                        умолчанию 30).
                     </li>
                     <li>
-                        <strong>Мин. сходство (Min Sim):</strong> порог
-                        отсечения косинусной близости (от 0.05 до 0.95, по
-                        умолчанию 0.15).
+                        <code>min_sim</code> — минимальный порог косинусного
+                        сходства (0.15).
                     </li>
                     <li>
-                        <strong>Мин. голосов (Min Votes):</strong> минимальное
-                        число соседей, оценивших фильм-кандидат, необходимое для
-                        включения фильма в прогноз (по умолчанию 2).
+                        <code>min_votes</code> — минимум общих оценок для учёта
+                        фильма (2).
                     </li>
                     <li>
-                        <strong>Сглаживание Байеса (m):</strong> вес априорного
-                        среднего рейтинга при расчете топа популярных фильмов
-                        (по умолчанию 20).
+                        <code>bayes_m</code> — коэффициент сглаживания Байеса
+                        (20).
                     </li>
                 </ul>
-
-                <h3>4. Интерактивная работа и «Холодный старт»</h3>
-                <p>
-                    Нажмите <strong>«+ Новый профиль»</strong> в верхней панели,
-                    чтобы создать нового пользователя с 0 оценок. Система
-                    автоматически распознает проблему холодного старта и
-                    предложит глобальный топ. Поставьте оценки (1–5 ★) на любых
-                    карточках фильмов — индекс обновится в реальном времени без
-                    перезагрузки базы.
-                </p>
             </div>
         </div>
 
-        <template id="movieCardTpl">
+        <template id="cardTpl">
             <div class="card">
                 <div>
                     <div class="card-title"></div>
-                    <div class="genres"></div>
-                    <div class="meta">
-                        <span class="year"></span>
-                        <span class="avg-rating"></span>
-                    </div>
+                    <div class="card-sub"></div>
                     <div class="badge"></div>
                 </div>
-                <div class="actions">
-                    <div
-                        class="stars"
-                        title="Поставить оценку от имени текущего пользователя"
-                    ></div>
-                    <button class="btn-similar">Похожие</button>
+                <div class="card-bottom">
+                    <div class="stars" title="Оценить фильм"></div>
+                    <button class="btn-Ghost btn-mini btn-sim">
+                        Похожие →
+                    </button>
                 </div>
             </div>
         </template>
 
         <script>
-            const userSelect = document.getElementById("userSelect");
-            const movieSelect = document.getElementById("movieSelect");
-            const movieSearch = document.getElementById("movieSearch");
-            const personalGrid = document.getElementById("personalGrid");
-            const byRatingsGrid = document.getElementById("byRatingsGrid");
-            const contentGrid = document.getElementById("contentGrid");
-            const topGrid = document.getElementById("topGrid");
-            const coldStartBanner = document.getElementById("coldStartBanner");
-            const statsBar = document.getElementById("statsBar");
-            const tpl = document.getElementById("movieCardTpl");
-
+            const el = (id) => document.getElementById(id);
+            let currentTab = "personal";
             let currentUserId = 1;
-            let userRatedMap = {};
+            let userRatings = {};
 
-            function getQueryParams() {
-                const p = new URLSearchParams({
-                    limit: document.getElementById("paramLimit").value || 10,
-                    k: document.getElementById("paramK").value || 30,
-                    min_sim:
-                        document.getElementById("paramMinSim").value || 0.15,
-                    min_votes:
-                        document.getElementById("paramMinVotes").value || 2,
-                    bayes_m: document.getElementById("paramBayesM").value || 20,
-                });
-                return p.toString();
+            const tabMeta = {
+                personal: {
+                    title: "1. Персональные рекомендации",
+                    desc: "Гибридный алгоритм: учитывает ваши любимые жанры по прошлым оценкам (70%) и рейтинг фильма (30%)",
+                    needsMovie: false,
+                },
+                userCF: {
+                    title: "2. Коллаборативная фильтрация по пользователям",
+                    desc: "Находит зрителей с такими же оценками, как у вас, и рекомендует то, что понравилось им",
+                    needsMovie: false,
+                },
+                itemCF: {
+                    title: "3. Коллаборативная фильтрация по фильмам",
+                    desc: "Принцип «С этим фильмом также смотрят»: сходство по оценкам общих зрителей",
+                    needsMovie: true,
+                },
+                content: {
+                    title: "4. Похожие фильмы по контенту / жанрам",
+                    desc: "Подбирает 10 фильмов с максимально близким набором жанров к выбранному фильму",
+                    needsMovie: true,
+                },
+                top: {
+                    title: "5. Топ-10 популярных фильмов",
+                    desc: "Сбалансированный рейтинг Байеса (IMDB Weighted Rating) по всей базе данных",
+                    needsMovie: false,
+                },
+            };
+
+            function getQuery() {
+                return new URLSearchParams({
+                    limit: el("pLimit").value || 10,
+                    k: el("pK").value || 30,
+                    min_sim: el("pSim").value || 0.15,
+                    min_votes: el("pVotes").value || 2,
+                    bayes_m: el("pBayes").value || 20,
+                }).toString();
+            }
+
+            async function api(url, opts) {
+                const r = await fetch(url, opts);
+                return r.json();
             }
 
             async function loadStats() {
-                const s = await fetch("/api/stats").then((r) => r.json());
-                statsBar.textContent = `Фильмов: ${s.movies_count} | Оценок: ${s.ratings_count} | Пользователей: ${s.users_count} | Ср. балл: ${s.global_avg.toFixed(2)} ★`;
+                const s = await api("/api/stats");
+                el("statsBar").textContent =
+                    `Фильмов: ${s.movies_count} • Оценок: ${s.ratings_count} • Пользователей: ${s.users_count}`;
             }
 
-            async function loadUsers(selectUserId = null) {
-                const users = await fetch("/api/users?limit=150").then((r) =>
-                    r.json(),
-                );
-                userSelect.innerHTML = "";
+            async function loadUsers(selectId = null) {
+                const users = await api("/api/users?limit=150");
+                const sel = el("userSelect");
+                sel.innerHTML = "";
                 users.forEach((u) => {
                     const opt = document.createElement("option");
                     opt.value = u.id;
                     opt.textContent = `${u.name} (${u.rating_count} оц.)`;
-                    userSelect.appendChild(opt);
+                    sel.appendChild(opt);
                 });
-                if (selectUserId) {
-                    currentUserId = selectUserId;
+                if (selectId) {
+                    currentUserId = selectId;
                 } else if (users.length > 0) {
-                    const firstActive =
+                    const active =
                         users.find((u) => u.rating_count > 0) || users[0];
-                    currentUserId = firstActive.id;
+                    currentUserId = active.id;
                 }
-                userSelect.value = currentUserId;
+                sel.value = currentUserId;
             }
 
-            async function init() {
-                await Promise.all([
-                    loadStats(),
-                    loadUsers(),
-                    loadMoviesDropdown(""),
-                ]);
-                await refreshAll();
-            }
-
-            async function loadMoviesDropdown(query) {
-                const movies = await fetch(
-                    `/api/movies?q=${encodeURIComponent(query)}&limit=60`,
-                ).then((r) => r.json());
-                movieSelect.innerHTML = "";
+            async function loadMovies(q = "") {
+                const movies = await api(
+                    `/api/movies?q=${encodeURIComponent(q)}&limit=60`,
+                );
+                const sel = el("movieSelect");
+                sel.innerHTML = "";
                 movies.forEach((m) => {
                     const opt = document.createElement("option");
                     opt.value = m.id;
                     opt.textContent = `${m.title} (${m.rating_count} оц.)`;
-                    movieSelect.appendChild(opt);
+                    sel.appendChild(opt);
                 });
-                if (movies.length > 0) {
-                    await loadContentSimilar(movies[0].id);
-                }
             }
 
-            async function refreshAll() {
-                const qs = getQueryParams();
-                await Promise.all([
-                    loadPersonalRecommendations(currentUserId, qs),
-                    loadByUserRatings(currentUserId, qs),
-                    loadTopMovies(qs),
-                    loadStats(),
-                ]);
-                if (movieSelect.value) {
-                    await loadContentSimilar(movieSelect.value);
-                }
-            }
+            async function loadCurrentTab() {
+                const meta = tabMeta[currentTab];
+                el("sectionTitle").textContent = meta.title;
+                el("sectionDesc").textContent = meta.desc;
+                el("movieBar").classList.toggle("show", meta.needsMovie);
 
-            async function loadPersonalRecommendations(userId, qs) {
-                const data = await fetch(
-                    `/api/users/${userId}/recommendations?${qs}`,
-                ).then((r) => r.json());
-                userRatedMap = {};
-                (data.rated_movies || []).forEach((r) => {
-                    userRatedMap[r.movie_id] = r.rating;
-                });
-                coldStartBanner.style.display = data.is_cold_start
-                    ? "block"
-                    : "none";
-                renderGrid(personalGrid, data.items || []);
-            }
+                const qs = getQuery();
 
-            async function loadByUserRatings(userId, qs) {
-                const data = await fetch(
-                    `/api/users/${userId}/by-ratings?${qs}`,
-                ).then((r) => r.json());
-                renderGrid(byRatingsGrid, data.items || []);
-            }
-
-            async function loadContentSimilar(movieId) {
-                const qs = getQueryParams();
-                const items = await fetch(
-                    `/api/movies/${movieId}/similar?${qs}`,
-                ).then((r) => r.json());
-                renderGrid(contentGrid, items || []);
-            }
-
-            async function loadTopMovies(qs) {
-                const items = await fetch(`/api/movies/top?${qs}`).then((r) =>
-                    r.json(),
+                // Всегда синхронизируем оценки текущего пользователя для подсветки звёздочек
+                const userCFData = await api(
+                    `/api/users/${currentUserId}/collaborative?${qs}`,
                 );
-                renderGrid(topGrid, items || []);
+                userRatings = {};
+                (userCFData.rated_movies || []).forEach((r) => {
+                    userRatings[r.movie_id] = r.rating;
+                });
+
+                let items = [];
+                let showCold = false;
+
+                if (currentTab === "userCF") {
+                    items = userCFData.items || [];
+                    showCold = userCFData.is_cold_start;
+                } else if (currentTab === "personal") {
+                    const data = await api(
+                        `/api/users/${currentUserId}/personal?${qs}`,
+                    );
+                    items = data.items || [];
+                    showCold = data.is_cold_start;
+                } else if (currentTab === "itemCF") {
+                    const mId = el("movieSelect").value;
+                    if (mId)
+                        items =
+                            (await api(
+                                `/api/movies/${mId}/collaborative?${qs}`,
+                            )) || [];
+                } else if (currentTab === "content") {
+                    const mId = el("movieSelect").value;
+                    if (mId)
+                        items =
+                            (await api(`/api/movies/${mId}/content?${qs}`)) ||
+                            [];
+                } else if (currentTab === "top") {
+                    items = (await api(`/api/movies/top?${qs}`)) || [];
+                }
+
+                el("coldBanner").style.display = showCold ? "block" : "none";
+                renderCards(items);
             }
 
-            function renderGrid(container, items) {
-                container.innerHTML = "";
+            function renderCards(items) {
+                const grid = el("mainGrid");
+                grid.innerHTML = "";
+                if (items.length === 0) {
+                    grid.innerHTML = `<p style="color:var(--muted)">Ничего не найдено. Попробуйте уменьшить пороги в «⚙ Параметры».</p>`;
+                    return;
+                }
+
+                const tpl = el("cardTpl");
                 items.forEach((item) => {
                     const node = tpl.content.cloneNode(true);
                     node.querySelector(".card-title").textContent = item.title;
 
-                    const genresBox = node.querySelector(".genres");
-                    (item.genres || "").split("|").forEach((g) => {
-                        if (!g) return;
-                        const span = document.createElement("span");
-                        span.className = "genre-tag";
-                        span.textContent = g;
-                        genresBox.appendChild(span);
-                    });
-
-                    node.querySelector(".year").textContent = item.year
-                        ? `${item.year} г.`
-                        : "";
-                    node.querySelector(".avg-rating").textContent =
-                        `★ ${item.avg_rating.toFixed(2)} (${item.rating_count})`;
-                    node.querySelector(".badge").textContent =
-                        item.reason || `Score: ${item.score}`;
+                    const genres = (item.genres || "").replaceAll("|", ", ");
+                    node.querySelector(".card-sub").textContent =
+                        `${genres} • ★ ${item.avg_rating.toFixed(2)} (${item.rating_count})`;
+                    node.querySelector(".badge").textContent = item.reason;
 
                     const starsBox = node.querySelector(".stars");
-                    const currentRating = userRatedMap[item.id] || 0;
-                    for (let s = 1; s <= 5; s++) {
-                        const star = document.createElement("span");
-                        star.className =
-                            "star" + (s <= currentRating ? " active" : "");
-                        star.textContent = "★";
-                        star.onclick = () => rateMovie(item.id, s);
-                        starsBox.appendChild(star);
+                    const myRate = userRatings[item.id] || 0;
+                    for (let i = 1; i <= 5; i++) {
+                        const s = document.createElement("span");
+                        s.className = "star" + (i <= myRate ? " active" : "");
+                        s.textContent = "★";
+                        s.onclick = () => rateMovie(item.id, i);
+                        starsBox.appendChild(s);
                     }
 
-                    const btnSimilar = node.querySelector(".btn-similar");
-                    btnSimilar.onclick = () => {
-                        let opt = Array.from(movieSelect.options).find(
-                            (o) => Number(o.value) === item.id,
-                        );
-                        if (!opt) {
-                            opt = document.createElement("option");
+                    node.querySelector(".btn-sim").onclick = () => {
+                        const sel = el("movieSelect");
+                        if (
+                            !Array.from(sel.options).some(
+                                (o) => Number(o.value) === item.id,
+                            )
+                        ) {
+                            const opt = document.createElement("option");
                             opt.value = item.id;
                             opt.textContent = item.title;
-                            movieSelect.prepend(opt);
+                            sel.prepend(opt);
                         }
-                        movieSelect.value = item.id;
-                        loadContentSimilar(item.id);
-                        document
-                            .getElementById("contentSection")
-                            .scrollIntoView({ behavior: "smooth" });
+                        sel.value = item.id;
+                        switchTab("content");
                     };
 
-                    container.appendChild(node);
+                    grid.appendChild(node);
                 });
             }
 
+            function switchTab(tabName) {
+                currentTab = tabName;
+                document.querySelectorAll(".tab").forEach((b) => {
+                    b.classList.toggle("active", b.dataset.tab === tabName);
+                });
+                loadCurrentTab();
+            }
+
             async function rateMovie(movieId, rating) {
-                await fetch("/api/ratings", {
+                await api("/api/ratings", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -756,57 +700,66 @@
                         rating: Number(rating),
                     }),
                 });
-                await loadUsers(currentUserId);
-                await refreshAll();
+                await Promise.all([
+                    loadStats(),
+                    loadUsers(currentUserId),
+                    loadCurrentTab(),
+                ]);
             }
 
-            document.getElementById("btnNewUser").onclick = async () => {
+            // События интерфейса
+            document.querySelectorAll(".tab").forEach((btn) => {
+                btn.onclick = () => switchTab(btn.dataset.tab);
+            });
+
+            el("userSelect").onchange = (e) => {
+                currentUserId = Number(e.target.value);
+                loadCurrentTab();
+            };
+
+            el("movieSelect").onchange = () => loadCurrentTab();
+
+            let timer;
+            el("movieSearch").oninput = (e) => {
+                clearTimeout(timer);
+                timer = setTimeout(async () => {
+                    await loadMovies(e.target.value);
+                    loadCurrentTab();
+                }, 200);
+            };
+
+            el("btnToggleParams").onclick = () =>
+                el("paramsPanel").classList.toggle("show");
+            el("btnApply").onclick = () => loadCurrentTab();
+
+            el("btnNewUser").onclick = async () => {
                 const name = prompt(
-                    "Введите имя нового пользователя (для проверки холодного старта):",
-                    "Новый пользователь",
+                    "Имя нового пользователя (0 оценок):",
+                    "Новый зритель",
                 );
                 if (name === null) return;
-                const u = await fetch("/api/users", {
+                const u = await api("/api/users", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: name.trim() }),
-                }).then((r) => r.json());
+                    body: JSON.stringify({ name }),
+                });
                 await loadUsers(u.id);
-                await refreshAll();
+                await loadCurrentTab();
             };
 
-            document.getElementById("btnApplyParams").onclick = () =>
-                refreshAll();
-
-            userSelect.onchange = (e) => {
-                currentUserId = Number(e.target.value);
-                refreshAll();
+            el("btnHelp").onclick = () =>
+                (el("helpModal").style.display = "flex");
+            el("btnCloseHelp").onclick = () =>
+                (el("helpModal").style.display = "none");
+            el("helpModal").onclick = (e) => {
+                if (e.target === el("helpModal"))
+                    el("helpModal").style.display = "none";
             };
 
-            movieSelect.onchange = (e) => {
-                loadContentSimilar(e.target.value);
-            };
-
-            let searchTimer;
-            movieSearch.oninput = (e) => {
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(
-                    () => loadMoviesDropdown(e.target.value),
-                    200,
-                );
-            };
-
-            // Справка
-            const helpModal = document.getElementById("helpModal");
-            document.getElementById("btnHelp").onclick = () =>
-                (helpModal.style.display = "flex");
-            document.getElementById("btnCloseHelp").onclick = () =>
-                (helpModal.style.display = "none");
-            helpModal.onclick = (e) => {
-                if (e.target === helpModal) helpModal.style.display = "none";
-            };
-
-            init();
+            (async () => {
+                await Promise.all([loadStats(), loadUsers(), loadMovies("")]);
+                await loadCurrentTab();
+            })();
         </script>
     </body>
 </html>
