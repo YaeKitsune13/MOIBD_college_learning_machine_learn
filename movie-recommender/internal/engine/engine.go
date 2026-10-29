@@ -32,6 +32,11 @@ type Engine struct {
 	movieRateSum  map[int]float64         // movieID -> сумма всех оценок фильма
 	totalRatings  int
 	globalAvgRate float64
+
+	// Артефакты обученной ML-модели из Jupyter Notebook (model_artifacts.json)
+	mlBestModel string
+	mlDim       int
+	mlMovieVecs map[int][]float64
 }
 
 func NewEngine(db *sqlx.DB) *Engine {
@@ -63,8 +68,7 @@ func (e *Engine) ReloadIndex() {
 			if genre == "" || genre == models.NoGenresLabel {
 				continue
 			}
-			_, alreadyExists := genreIndexMap[genre]
-			if !alreadyExists {
+			if _, alreadyExists := genreIndexMap[genre]; !alreadyExists {
 				genreIndexMap[genre] = len(e.genreNames)
 				e.genreNames = append(e.genreNames, genre)
 			}
@@ -103,8 +107,7 @@ func (e *Engine) ReloadIndex() {
 		movieRatingCounts[r.MovieID]++
 		totalRatingSum += r.Rating
 
-		_, userExists := e.users[r.UserID]
-		if !userExists {
+		if _, userExists := e.users[r.UserID]; !userExists {
 			e.users[r.UserID] = models.User{
 				ID:   r.UserID,
 				Name: fmt.Sprintf(models.FmtUserName, r.UserID),
@@ -126,8 +129,7 @@ func (e *Engine) ReloadIndex() {
 		}
 		e.userNorms[userID] = math.Sqrt(sumOfSquares)
 
-		userObj, exists := e.users[userID]
-		if exists {
+		if userObj, exists := e.users[userID]; exists {
 			userObj.RatingCount = len(ratedMoviesMap)
 			e.users[userID] = userObj
 		}
@@ -150,8 +152,7 @@ func (e *Engine) ReloadIndex() {
 		genreVec := make([]float64, totalGenres)
 		var vectorSquareSum float64
 		for _, genre := range strings.Split(movie.Genres, "|") {
-			genreIdx, exists := genreIndexMap[genre]
-			if exists {
+			if genreIdx, exists := genreIndexMap[genre]; exists {
 				genreVec[genreIdx] = 1.0
 				vectorSquareSum += 1.0
 			}
@@ -164,6 +165,7 @@ func (e *Engine) ReloadIndex() {
 		return cmp.Compare(b.RatingCount, a.RatingCount)
 	})
 	e.rebuildUserListLocked()
+	e.loadMLArtifactsLocked()
 
 	log.Printf("Индекс в RAM построен за %v: %d фильмов, %d оценок, %d пользователей",
 		time.Since(startTime).Round(time.Millisecond), len(e.movies), e.totalRatings, len(e.users))
@@ -231,8 +233,7 @@ func (e *Engine) UpsertRating(userID, movieID int, newRating float64) {
 		e.globalAvgRate = totalGlobalSum / float64(e.totalRatings)
 	}
 
-	movieObj, movieExists := e.movies[movieID]
-	if movieExists {
+	if movieObj, movieExists := e.movies[movieID]; movieExists {
 		if !alreadyRated {
 			movieObj.RatingCount++
 		}
@@ -305,8 +306,7 @@ func (e *Engine) SearchMovies(searchQuery string, limit int) []models.Movie {
 		matchesGenre := strings.Contains(strings.ToLower(cachedMovie.Genres), queryLower)
 
 		if queryLower == "" || matchesTitle || matchesGenre {
-			actualMovie, exists := e.movies[cachedMovie.ID]
-			if exists {
+			if actualMovie, exists := e.movies[cachedMovie.ID]; exists {
 				result = append(result, actualMovie)
 			}
 			if len(result) >= limit {
@@ -315,321 +315,6 @@ func (e *Engine) SearchMovies(searchQuery string, limit int) []models.Movie {
 		}
 	}
 	return result
-}
-
-func (e *Engine) GetTopMovies(limit int, bayesM float64) []models.MovieRecommendation {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	smoothingM := bayesM
-	if smoothingM <= 0 {
-		smoothingM = models.DefaultBayesM
-	}
-	globalAverageC := e.globalAvgRate
-
-	recommendations := make([]models.MovieRecommendation, 0, len(e.movies)/2)
-
-	for _, movie := range e.movies {
-		if movie.RatingCount == 0 {
-			continue
-		}
-
-		votesCountV := float64(movie.RatingCount)
-		movieAverageR := movie.AvgRating
-
-		weightedScore := (votesCountV/(votesCountV+smoothingM))*movieAverageR +
-			(smoothingM/(votesCountV+smoothingM))*globalAverageC
-
-		recommendations = append(recommendations, models.MovieRecommendation{
-			Movie:  movie,
-			Score:  round2(weightedScore),
-			Reason: fmt.Sprintf(models.FmtReasonBayes, weightedScore, movie.RatingCount),
-		})
-	}
-
-	sortAndTrim(&recommendations, limit)
-	return recommendations
-}
-
-func (e *Engine) GetUserCollaborative(userID int, params models.RecParams) ([]models.MovieRecommendation, bool) {
-	e.mu.RLock()
-	targetUserRatings := e.userRatings[userID]
-	targetUserNorm := e.userNorms[userID]
-	e.mu.RUnlock()
-
-	if len(targetUserRatings) == 0 || targetUserNorm == 0 {
-		return e.coldStartFallback(params), true
-	}
-
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	dotProducts := make(map[int]float64, 512)
-	for movieID, myRating := range targetUserRatings {
-		usersWhoWatched := e.movieUsers[movieID]
-		for _, otherUserID := range usersWhoWatched {
-			if otherUserID == userID {
-				continue
-			}
-			otherRating := e.userRatings[otherUserID][movieID]
-			dotProducts[otherUserID] += myRating * otherRating
-		}
-	}
-
-	type neighborUser struct {
-		userID     int
-		similarity float64
-	}
-	neighbors := make([]neighborUser, 0, len(dotProducts))
-
-	for otherUserID, dotVal := range dotProducts {
-		otherUserNorm := e.userNorms[otherUserID]
-		if otherUserNorm == 0 {
-			continue
-		}
-
-		cosineSim := dotVal / (targetUserNorm * otherUserNorm)
-		if cosineSim >= params.MinSim {
-			neighbors = append(neighbors, neighborUser{
-				userID:     otherUserID,
-				similarity: cosineSim,
-			})
-		}
-	}
-
-	slices.SortFunc(neighbors, func(a, b neighborUser) int {
-		return cmp.Compare(b.similarity, a.similarity)
-	})
-	if len(neighbors) > params.K {
-		neighbors = neighbors[:params.K]
-	}
-
-	type movieCandidate struct {
-		weightedRatingSum float64
-		similaritySum     float64
-		neighborVotes     int
-	}
-	candidates := make(map[int]*movieCandidate, 256)
-
-	for _, neighbor := range neighbors {
-		neighborRatings := e.userRatings[neighbor.userID]
-		for movieID, neighborRating := range neighborRatings {
-			_, alreadyWatched := targetUserRatings[movieID]
-			if alreadyWatched {
-				continue
-			}
-
-			cand, exists := candidates[movieID]
-			if !exists {
-				cand = &movieCandidate{}
-				candidates[movieID] = cand
-			}
-
-			cand.weightedRatingSum += neighbor.similarity * neighborRating
-			cand.similaritySum += neighbor.similarity
-			cand.neighborVotes++
-		}
-	}
-
-	recommendations := make([]models.MovieRecommendation, 0, len(candidates))
-	for movieID, cand := range candidates {
-		if cand.similaritySum == 0 || cand.neighborVotes < params.MinVotes {
-			continue
-		}
-
-		movieObj, exists := e.movies[movieID]
-		if !exists {
-			continue
-		}
-
-		predictedRating := cand.weightedRatingSum / cand.similaritySum
-		recommendations = append(recommendations, models.MovieRecommendation{
-			Movie:  movieObj,
-			Score:  round2(predictedRating),
-			Reason: fmt.Sprintf(models.FmtReasonUserCF, predictedRating, cand.neighborVotes),
-		})
-	}
-
-	sortAndTrim(&recommendations, params.Limit)
-	return recommendations, false
-}
-
-func (e *Engine) GetItemCollaborative(targetMovieID int, params models.RecParams) []models.MovieRecommendation {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	targetMovieNorm := e.movieNorms[targetMovieID]
-	usersWhoRatedTarget := e.movieUsers[targetMovieID]
-
-	if targetMovieNorm == 0 || len(usersWhoRatedTarget) == 0 {
-		return nil
-	}
-
-	type coRatedMovie struct {
-		dotProduct  float64
-		commonUsers int
-	}
-	coRatedMap := make(map[int]*coRatedMovie, 512)
-
-	for _, userID := range usersWhoRatedTarget {
-		targetRating := e.userRatings[userID][targetMovieID]
-
-		for otherMovieID, otherRating := range e.userRatings[userID] {
-			if otherMovieID == targetMovieID {
-				continue
-			}
-
-			item, exists := coRatedMap[otherMovieID]
-			if !exists {
-				item = &coRatedMovie{}
-				coRatedMap[otherMovieID] = item
-			}
-			item.dotProduct += targetRating * otherRating
-			item.commonUsers++
-		}
-	}
-
-	recommendations := make([]models.MovieRecommendation, 0, len(coRatedMap))
-	for otherMovieID, item := range coRatedMap {
-		if item.commonUsers < params.MinVotes {
-			continue
-		}
-
-		otherMovieNorm := e.movieNorms[otherMovieID]
-		if otherMovieNorm == 0 {
-			continue
-		}
-
-		cosineSim := item.dotProduct / (targetMovieNorm * otherMovieNorm)
-		if cosineSim < params.MinSim {
-			continue
-		}
-
-		movieObj, exists := e.movies[otherMovieID]
-		if exists {
-			recommendations = append(recommendations, models.MovieRecommendation{
-				Movie:  movieObj,
-				Score:  round2(cosineSim),
-				Reason: fmt.Sprintf(models.FmtReasonItemCF, cosineSim*100, item.commonUsers),
-			})
-		}
-	}
-
-	sortAndTrim(&recommendations, params.Limit)
-	return recommendations
-}
-
-func (e *Engine) GetSimilarByContent(targetMovieID int, params models.RecParams) []models.MovieRecommendation {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	targetGenreVector, exists := e.genreVectors[targetMovieID]
-	if !exists {
-		return nil
-	}
-
-	recommendations := make([]models.MovieRecommendation, 0, 128)
-	for otherMovieID, otherGenreVector := range e.genreVectors {
-		if otherMovieID == targetMovieID {
-			continue
-		}
-
-		genreSimilarity := dotProduct(targetGenreVector, otherGenreVector)
-		if genreSimilarity >= params.MinSim {
-			recommendations = append(recommendations, models.MovieRecommendation{
-				Movie:  e.movies[otherMovieID],
-				Score:  round2(genreSimilarity),
-				Reason: fmt.Sprintf(models.FmtReasonContent, genreSimilarity*100),
-			})
-		}
-	}
-
-	sortAndTrim(&recommendations, params.Limit)
-	return recommendations
-}
-
-func (e *Engine) GetPersonalRecommendations(userID int, params models.RecParams) ([]models.MovieRecommendation, bool) {
-	e.mu.RLock()
-	targetUserRatings := e.userRatings[userID]
-	e.mu.RUnlock()
-
-	if len(targetUserRatings) == 0 {
-		return e.coldStartFallback(params), true
-	}
-
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	userTasteProfile := make([]float64, len(e.genreNames))
-	var profileSquareSum float64
-
-	for movieID, rating := range targetUserRatings {
-		interestWeight := rating - 2.5
-		if interestWeight <= 0 {
-			continue
-		}
-
-		movieGenreVec, exists := e.genreVectors[movieID]
-		if exists {
-			for i, val := range movieGenreVec {
-				userTasteProfile[i] += val * interestWeight
-			}
-		}
-	}
-
-	for _, val := range userTasteProfile {
-		profileSquareSum += val * val
-	}
-
-	if profileSquareSum == 0 {
-		for movieID, rating := range targetUserRatings {
-			movieGenreVec, exists := e.genreVectors[movieID]
-			if exists {
-				for i, val := range movieGenreVec {
-					userTasteProfile[i] += val * rating
-				}
-			}
-		}
-		for _, val := range userTasteProfile {
-			profileSquareSum += val * val
-		}
-	}
-
-	normalizeVector(userTasteProfile, profileSquareSum)
-
-	globalAverageC := e.globalAvgRate
-	smoothingM := params.BayesM
-	if smoothingM <= 0 {
-		smoothingM = models.DefaultBayesM
-	}
-
-	recommendations := make([]models.MovieRecommendation, 0, 256)
-	for movieID, movie := range e.movies {
-		_, alreadyWatched := targetUserRatings[movieID]
-		if alreadyWatched || movie.RatingCount < params.MinVotes {
-			continue
-		}
-
-		tasteSimilarity := dotProduct(userTasteProfile, e.genreVectors[movieID])
-		if tasteSimilarity < params.MinSim {
-			continue
-		}
-
-		votesCountV := float64(movie.RatingCount)
-		bayesRating := (votesCountV/(votesCountV+smoothingM))*movie.AvgRating +
-			(smoothingM/(votesCountV+smoothingM))*globalAverageC
-
-		hybridScore := (tasteSimilarity * 0.7) + ((bayesRating / 5.0) * 0.3)
-
-		recommendations = append(recommendations, models.MovieRecommendation{
-			Movie:  movie,
-			Score:  round2(hybridScore),
-			Reason: fmt.Sprintf(models.FmtReasonHybrid, tasteSimilarity*100),
-		})
-	}
-
-	sortAndTrim(&recommendations, params.Limit)
-	return recommendations, false
 }
 
 func (e *Engine) GetUserRatedMovies(userID int) []models.Rating {
@@ -657,48 +342,6 @@ func (e *Engine) GetStats() map[string]any {
 		"ratings_count": e.totalRatings,
 		"genres_count":  len(e.genreNames),
 		"global_avg":    e.globalAvgRate,
-	}
-}
-
-func (e *Engine) coldStartFallback(params models.RecParams) []models.MovieRecommendation {
-	topMovies := e.GetTopMovies(params.Limit, params.BayesM)
-	for i := range topMovies {
-		topMovies[i].Reason = models.ReasonColdStart
-	}
-	return topMovies
-}
-
-func dotProduct(vecA, vecB []float64) float64 {
-	var sum float64
-	for i := range vecA {
-		sum += vecA[i] * vecB[i]
-	}
-	return sum
-}
-
-func normalizeVector(vec []float64, squareSum float64) {
-	if squareSum <= 0 {
-		return
-	}
-	length := math.Sqrt(squareSum)
-	for i := range vec {
-		vec[i] /= length
-	}
-}
-
-func round2(val float64) float64 {
-	return math.Round(val*100) / 100
-}
-
-func sortAndTrim(recs *[]models.MovieRecommendation, limit int) {
-	list := *recs
-	slices.SortFunc(list, func(a, b models.MovieRecommendation) int {
-		if a.Score != b.Score {
-			return cmp.Compare(b.Score, a.Score)
-		}
-		return cmp.Compare(b.RatingCount, a.RatingCount)
-	})
-	if len(list) > limit {
-		*recs = list[:limit]
+		"ml_model":      e.mlBestModel,
 	}
 }

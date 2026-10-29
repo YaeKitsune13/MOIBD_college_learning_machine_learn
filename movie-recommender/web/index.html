@@ -358,7 +358,7 @@
                     1. Персональные
                 </button>
                 <button class="tab" data-tab="userCF">
-                    2. По пользователям (CF)
+                    2. По пользователям (CF + ML)
                 </button>
                 <button class="tab" data-tab="itemCF">
                     3. По фильмам (CF)
@@ -508,8 +508,8 @@
                     needsMovie: false,
                 },
                 userCF: {
-                    title: "2. Коллаборативная фильтрация по пользователям",
-                    desc: "Находит зрителей с такими же оценками, как у вас, и рекомендует то, что понравилось им",
+                    title: "2. Коллаборативная фильтрация (ML-модель: SVD + Gradient Boosting)",
+                    desc: "Проецирует ваши оценки в латентное пространство обученной модели (model_artifacts.json) и прогнозирует рейтинг",
                     needsMovie: false,
                 },
                 itemCF: {

@@ -17,6 +17,7 @@ const (
 	FmtReasonBayes   = "Байес: %.2f ★ (%d оц.)"
 	FmtReasonUserCF  = "User-CF: прогноз %.2f ★ (%d сос.)"
 	FmtReasonItemCF  = "Item-CF: сходство %.0f%% (%d общ.)"
+	FmtReasonML      = "ML (%s): прогноз %.2f ★ (SVD: %.0f%%)"
 	FmtReasonContent = "Жанровое сходство: %.0f%%"
 	FmtReasonHybrid  = "Вкусовой профиль: %.0f%%"
 	ReasonColdStart  = "Холодный старт (Топ популярных)"
@@ -35,6 +36,13 @@ type MovieRecommendation struct {
 	Movie
 	Score  float64 `json:"score"`
 	Reason string  `json:"reason"`
+}
+
+type MLArtifacts struct {
+	BestModel   string               `json:"best_model"`
+	NComponents int                  `json:"n_components"`
+	Movies      map[string][]float64 `json:"movies"`
+	Users       map[string][]float64 `json:"users"`
 }
 
 type User struct {
