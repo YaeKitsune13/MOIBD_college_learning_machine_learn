@@ -21,7 +21,6 @@ type mlArtifacts struct {
 	Users       map[string][]float64 `json:"users"`
 }
 
-// loadMLArtifactsLocked загружает обученные латентные векторы из model_artifacts.json
 func (e *Engine) loadMLArtifactsLocked() {
 	paths := []string{
 		"model_artifacts.json",
@@ -41,7 +40,7 @@ func (e *Engine) loadMLArtifactsLocked() {
 	}
 
 	if len(data) == 0 {
-		log.Println("Файл model_artifacts.json не найден, вкладка #2 использует стандартный User-KNN.")
+		log.Println("Файл model_artifacts.json не найден")
 		return
 	}
 
@@ -77,14 +76,12 @@ func (e *Engine) loadMLArtifactsLocked() {
 		e.mlBestModel, foundPath, len(e.mlMovieVecs), e.mlDim)
 }
 
-// getUserMLRecommendations вычисляет рекомендации на базе обученной модели из model_artifacts.json
 func (e *Engine) getUserMLRecommendations(userID int, params models.RecParams) []models.MovieRecommendation {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
 	targetUserRatings := e.userRatings[userID]
 
-	// 1. Динамически проецируем оценки пользователя в латентное пространство SVD (Online Folding-In)
 	userLatentVec := make([]float64, e.mlDim)
 	var userRatingSum float64
 
@@ -127,7 +124,6 @@ func (e *Engine) getUserMLRecommendations(userID int, params models.RecParams) [
 		smoothingM = models.DefaultBayesM
 	}
 
-	// 2. Прогнозируем оценку для каждого непросмотренного фильма по признакам (m_mean, u_mean, svd_dot)
 	recommendations := make([]models.MovieRecommendation, 0, 256)
 	for movieID, movieObj := range e.movies {
 		if _, alreadyWatched := targetUserRatings[movieID]; alreadyWatched {
@@ -148,6 +144,9 @@ func (e *Engine) getUserMLRecommendations(userID int, params models.RecParams) [
 		}
 
 		votesV := float64(movieObj.RatingCount)
+		// Байесовское среднее (формула IMDb): балансирует оценку фильма и число голосов.
+		// Чем больше голосов (votesCountV), тем ближе итог к реальному рейтингу фильма (AvgRating).
+		// Чем меньше голосов, тем сильнее оценка «стягивается» к среднему по всей базе (globalAverageC).
 		movieBayesMean := (votesV/(votesV+smoothingM))*movieObj.AvgRating +
 			(smoothingM/(votesV+smoothingM))*e.globalAvgRate
 

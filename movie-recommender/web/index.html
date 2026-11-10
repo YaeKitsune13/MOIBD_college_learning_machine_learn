@@ -33,9 +33,112 @@
                 line-height: 1.45;
             }
             .container {
-                max-width: 1120px;
+                max-width: 1380px;
                 margin: 0 auto;
                 padding: 20px;
+                display: grid;
+                grid-template-columns: 1fr 340px;
+                gap: 20px;
+                align-items: start;
+            }
+            .main-col {
+                min-width: 0;
+            }
+            @media (max-width: 960px) {
+                .container {
+                    grid-template-columns: 1fr;
+                }
+            }
+            /* Блок статистики пользователя */
+            .user-profile-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                padding: 14px 18px;
+                margin-bottom: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .profile-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .profile-title {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--primary);
+            }
+            .profile-kpis {
+                display: flex;
+                gap: 14px;
+                flex-wrap: wrap;
+                font-size: 0.84rem;
+                color: var(--muted);
+            }
+            .profile-kpis strong {
+                color: var(--text);
+            }
+            .profile-section-label {
+                font-size: 0.78rem;
+                color: var(--muted);
+                margin-bottom: 6px;
+            }
+            .chips-wrap {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .chip {
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 999px;
+                padding: 3px 10px;
+                font-size: 0.78rem;
+                color: var(--text);
+            }
+            .chip span {
+                color: var(--star);
+                font-weight: 500;
+            }
+            .dist-chip {
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 3px 9px;
+                font-size: 0.78rem;
+            }
+            .rated-details summary {
+                font-size: 0.82rem;
+                color: var(--primary);
+                cursor: pointer;
+                user-select: none;
+            }
+            .rated-list {
+                margin-top: 8px;
+                max-height: 210px;
+                overflow-y: auto;
+                display: grid;
+                gap: 6px;
+            }
+            .rated-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 6px 12px;
+                font-size: 0.82rem;
+                gap: 10px;
+            }
+            .rated-row-genres {
+                color: var(--muted);
+                font-size: 0.75rem;
             }
 
             /* Шапка */
@@ -314,7 +417,7 @@
                         + Новый
                     </button>
                     <button id="btnToggleParams" class="btn-Ghost">
-                        ⚙ Параметры
+                        <!--⚙ Параметры-->
                     </button>
                     <button id="btnHelp" class="btn-primary">? Справка</button>
                 </div>
@@ -322,83 +425,135 @@
         </header>
 
         <div class="container">
-            <!-- Скрытая панель параметров (открывается по кнопке ⚙ Параметры) -->
-            <div id="paramsPanel" class="panel">
-                <div class="param-group">
-                    Топ (Limit):
-                    <input
-                        type="number"
-                        id="pLimit"
-                        value="10"
-                        min="1"
-                        max="50"
-                    />
+            <div class="main-col">
+                <!-- Скрытая панель параметров (открывается по кнопке ⚙ Параметры) -->
+                <div id="paramsPanel" class="panel">
+                    <div class="param-group">
+                        Топ (Limit):
+                        <input
+                            type="number"
+                            id="pLimit"
+                            value="10"
+                            min="1"
+                            max="50"
+                        />
+                    </div>
+                    <div class="param-group">
+                        Соседей (K):
+                        <input
+                            type="number"
+                            id="pK"
+                            value="30"
+                            min="1"
+                            max="200"
+                        />
+                    </div>
+                    <div class="param-group">
+                        Сходство:
+                        <input
+                            type="number"
+                            id="pSim"
+                            value="0.15"
+                            step="0.05"
+                        />
+                    </div>
+                    <div class="param-group">
+                        Мин. оценок:
+                        <input type="number" id="pVotes" value="2" min="1" />
+                    </div>
+                    <div class="param-group">
+                        Байес (m):
+                        <input type="number" id="pBayes" value="20" min="1" />
+                    </div>
+                    <button id="btnApply" class="btn-primary">Применить</button>
                 </div>
-                <div class="param-group">
-                    Соседей (K):
-                    <input type="number" id="pK" value="30" min="1" max="200" />
-                </div>
-                <div class="param-group">
-                    Сходство:
-                    <input type="number" id="pSim" value="0.15" step="0.05" />
-                </div>
-                <div class="param-group">
-                    Мин. оценок:
-                    <input type="number" id="pVotes" value="2" min="1" />
-                </div>
-                <div class="param-group">
-                    Байес (m):
-                    <input type="number" id="pBayes" value="20" min="1" />
-                </div>
-                <button id="btnApply" class="btn-primary">Применить</button>
-            </div>
 
-            <div class="tabs">
-                <button class="tab active" data-tab="personal">
-                    1. Персональные
-                </button>
-                <button class="tab" data-tab="userCF">
-                    2. По пользователям (CF + ML)
-                </button>
-                <button class="tab" data-tab="itemCF">
-                    3. По фильмам (CF)
-                </button>
-                <button class="tab" data-tab="content">
-                    4. По контенту (Жанры)
-                </button>
-                <button class="tab" data-tab="top">5. Топ-10 популярных</button>
-            </div>
-
-            <!-- Панель выбора фильма (показывается ТОЛЬКО во вкладках 3 и 4) -->
-            <div id="movieBar" class="panel">
-                <strong>Выберите фильм для поиска похожих:</strong>
-                <div class="row">
-                    <input
-                        type="text"
-                        id="movieSearch"
-                        placeholder="Быстрый поиск фильма..."
-                    />
-                    <select id="movieSelect"></select>
+                <div class="tabs">
+                    <button class="tab active" data-tab="personal">
+                        1. Персональные
+                    </button>
+                    <button class="tab" data-tab="userCF">
+                        2. По пользователям
+                    </button>
+                    <button class="tab" data-tab="itemCF">3. По фильмам</button>
+                    <button class="tab" data-tab="content">
+                        4. По контенту (Жанрам)
+                    </button>
+                    <button class="tab" data-tab="top">
+                        5. Топ-10 популярных
+                    </button>
                 </div>
-            </div>
 
-            <!-- Плашка холодного старта -->
-            <div id="coldBanner" class="cold-banner">
-                У выбранного пользователя пока 0 оценок (Холодный старт) —
-                показан популярный топ. Поставьте оценку ★ любому фильму!
-            </div>
+                <div id="movieBar" class="panel">
+                    <strong>Выберите фильм для поиска похожих:</strong>
+                    <div class="row">
+                        <input
+                            type="text"
+                            id="movieSearch"
+                            placeholder="Быстрый поиск фильма..."
+                        />
+                        <select id="movieSelect"></select>
+                    </div>
+                </div>
 
-            <!-- Заголовок текущего раздела -->
-            <div class="info-box">
-                <h2 id="sectionTitle">Персональные рекомендации</h2>
-                <p id="sectionDesc">
-                    Подборка на основе оцененных вами жанров и популярности
-                    фильмов
-                </p>
-            </div>
+                <!-- Плашка холодного старта -->
+                <div id="coldBanner" class="cold-banner">
+                    У выбранного пользователя пока 0 оценок (Холодный старт) —
+                    показан популярный топ. Поставьте оценку ★ любому фильму!
+                </div>
 
-            <!-- Единая сетка карточек -->
-            <div id="mainGrid" class="grid"></div>
+                <!-- Заголовок текущего раздела -->
+                <div class="info-box">
+                    <h2 id="sectionTitle">Персональные рекомендации</h2>
+                    <p id="sectionDesc">
+                        Подборка на основе оцененных вами жанров и популярности
+                        фильмов
+                    </p>
+                </div>
+
+                <!-- Единая сетка карточек -->
+                <div id="mainGrid" class="grid"></div>
+            </div>
+            <aside id="userProfileCard" class="user-profile-card">
+                <div class="profile-header">
+                    <div class="profile-title" id="uStatTitle">
+                        Профиль пользователя
+                    </div>
+                    <div class="profile-kpis">
+                        <span>Оценено: <strong id="uStatTotal">0</strong></span>
+                        <span
+                            >Средняя:
+                            <strong id="uStatAvg">0.00</strong> ★</span
+                        >
+                    </div>
+                </div>
+
+                <div
+                    id="uStatDetailsWrap"
+                    style="display: none; flex-direction: column; gap: 12px"
+                >
+                    <div>
+                        <div class="profile-section-label">
+                            Жанры (просмотрено • средний балл):
+                        </div>
+                        <div class="chips-wrap" id="uStatGenres"></div>
+                    </div>
+
+                    <div>
+                        <div class="profile-section-label">
+                            Распределение оценок:
+                        </div>
+                        <div class="chips-wrap" id="uStatDist"></div>
+                    </div>
+
+                    <details class="rated-details" open>
+                        <summary id="uStatMoviesSummary">
+                            Оценённые фильмы
+                        </summary>
+                        <div class="rated-list" id="uStatMovies"></div>
+                    </details>
+                </div>
+            </aside>
         </div>
 
         <div id="helpModal" class="modal-bg">
@@ -441,7 +596,7 @@
                     </li>
                     <li>
                         <code>GET /api/movies/:id/content</code> — Рекомендации
-                        по контенту (сходство жанров).
+                        по контенту (сходство жанров и названий).
                     </li>
                     <li>
                         <code>GET /api/users/:id/personal</code> — Персональные
@@ -504,12 +659,12 @@
             const tabMeta = {
                 personal: {
                     title: "1. Персональные рекомендации",
-                    desc: "Гибридный алгоритм: учитывает ваши любимые жанры по прошлым оценкам (70%) и рейтинг фильма (30%)",
+                    desc: "Гибридный алгоритм: учитывает ваши любимые жанры по прошлым оценкам",
                     needsMovie: false,
                 },
                 userCF: {
-                    title: "2. Коллаборативная фильтрация (ML-модель: SVD + Gradient Boosting)",
-                    desc: "Проецирует ваши оценки в латентное пространство обученной модели (model_artifacts.json) и прогнозирует рейтинг",
+                    title: "2. Коллаборативная фильтраци",
+                    desc: "Компьютер берет ваши ответы или оценки, переводит их в набор чисел и понимает общий смысл ваших предпочтений",
                     needsMovie: false,
                 },
                 itemCF: {
@@ -518,13 +673,13 @@
                     needsMovie: true,
                 },
                 content: {
-                    title: "4. Похожие фильмы по контенту / жанрам",
+                    title: "4. Похожие фильмы по имени и жанрам",
                     desc: "Подбирает 10 фильмов с максимально близким набором жанров к выбранному фильму",
                     needsMovie: true,
                 },
                 top: {
                     title: "5. Топ-10 популярных фильмов",
-                    desc: "Сбалансированный рейтинг Байеса (IMDB Weighted Rating) по всей базе данных",
+                    desc: "Сбалансированный рейтинг Байеса по всей базе данных",
                     needsMovie: false,
                 },
             };
@@ -583,6 +738,65 @@
                     sel.appendChild(opt);
                 });
             }
+            async function loadUserProfileStats() {
+                const data = await api(`/api/users/${currentUserId}/stats`);
+                el("uStatTitle").textContent = `Профиль: ${data.user_name}`;
+                el("uStatTotal").textContent = data.total_ratings;
+                el("uStatAvg").textContent = data.avg_rating.toFixed(2);
+
+                const detailsWrap = el("uStatDetailsWrap");
+                if (data.total_ratings === 0) {
+                    detailsWrap.style.display = "none";
+                    return;
+                }
+                detailsWrap.style.display = "flex";
+
+                const genresBox = el("uStatGenres");
+                genresBox.innerHTML = "";
+                (data.genre_stats || []).forEach((g) => {
+                    const chip = document.createElement("div");
+                    chip.className = "chip";
+                    chip.innerHTML = `${g.genre}: <b>${g.count}</b> • <span>${g.avg_rating.toFixed(1)} ★</span>`;
+                    genresBox.appendChild(chip);
+                });
+
+                const distBox = el("uStatDist");
+                distBox.innerHTML = "";
+                [5, 4, 3, 2, 1].forEach((star) => {
+                    const count = (data.rating_distribution || {})[star] || 0;
+                    const chip = document.createElement("div");
+                    chip.className = "dist-chip";
+                    chip.innerHTML = `<span style="color:var(--star)">${star} ★</span>: <b>${count}</b>`;
+                    distBox.appendChild(chip);
+                });
+
+                el("uStatMoviesSummary").textContent =
+                    `Показать оценённые фильмы (${data.total_ratings})`;
+                const moviesBox = el("uStatMovies");
+                moviesBox.innerHTML = "";
+                (data.rated_movies || []).forEach((m) => {
+                    const row = document.createElement("div");
+                    row.className = "rated-row";
+
+                    const info = document.createElement("div");
+                    const genresText = (m.genres || "").replaceAll("|", ", ");
+                    info.innerHTML = `<div>${m.title}</div><div class="rated-row-genres">${genresText}</div>`;
+
+                    const stars = document.createElement("div");
+                    stars.className = "stars";
+                    for (let i = 1; i <= 5; i++) {
+                        const s = document.createElement("span");
+                        s.className = "star" + (i <= m.rating ? " active" : "");
+                        s.textContent = "★";
+                        s.onclick = () => rateMovie(m.movie_id, i);
+                        stars.appendChild(s);
+                    }
+
+                    row.appendChild(info);
+                    row.appendChild(stars);
+                    moviesBox.appendChild(row);
+                });
+            }
 
             async function loadCurrentTab() {
                 const meta = tabMeta[currentTab];
@@ -592,10 +806,11 @@
 
                 const qs = getQuery();
 
-                // Всегда синхронизируем оценки текущего пользователя для подсветки звёздочек
-                const userCFData = await api(
-                    `/api/users/${currentUserId}/collaborative?${qs}`,
-                );
+                const [userCFData] = await Promise.all([
+                    api(`/api/users/${currentUserId}/collaborative?${qs}`),
+                    loadUserProfileStats(),
+                ]);
+
                 userRatings = {};
                 (userCFData.rated_movies || []).forEach((r) => {
                     userRatings[r.movie_id] = r.rating;

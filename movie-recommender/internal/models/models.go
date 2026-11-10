@@ -1,6 +1,5 @@
 package models
 
-// Константы конфигурации
 const (
 	DefaultServerAddr = ":8080"
 	DefaultDBDSN      = "movies.db?_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=cache_size(-64000)"
@@ -15,10 +14,10 @@ const (
 
 	FmtUserName      = "Пользователь #%d"
 	FmtReasonBayes   = "Байес: %.2f ★ (%d оц.)"
-	FmtReasonUserCF  = "User-CF: прогноз %.2f ★ (%d сос.)"
-	FmtReasonItemCF  = "Item-CF: сходство %.0f%% (%d общ.)"
-	FmtReasonML      = "ML (%s): прогноз %.2f ★ (SVD: %.0f%%)"
-	FmtReasonContent = "Жанровое сходство: %.0f%%"
+	FmtReasonUserCF  = "Прогноз %.2f ★ (%d сос.)"
+	FmtReasonItemCF  = "Сходство %.0f%% (%d общ.)"
+	FmtReasonML      = "ML (%s): прогноз %.2f ★ (%.0f%%)"
+	FmtReasonContent = "Сходство: %.0f%%"
 	FmtReasonHybrid  = "Вкусовой профиль: %.0f%%"
 	ReasonColdStart  = "Холодный старт (Топ популярных)"
 )
@@ -87,4 +86,27 @@ func (p *RecParams) Normalize() {
 	p.MinSim = max(0.01, min(p.MinSim, 1.0))
 	p.MinVotes = max(1, min(p.MinVotes, 1000))
 	p.BayesM = max(1.0, min(p.BayesM, 5000.0))
+}
+
+type UserGenreStat struct {
+	Genre     string  `json:"genre"`
+	Count     int     `json:"count"`
+	AvgRating float64 `json:"avg_rating"`
+}
+
+type UserRatedItem struct {
+	MovieID int     `json:"movie_id"`
+	Title   string  `json:"title"`
+	Genres  string  `json:"genres"`
+	Rating  float64 `json:"rating"`
+}
+
+type UserStatsResponse struct {
+	UserID             int             `json:"user_id"`
+	UserName           string          `json:"user_name"`
+	TotalRatings       int             `json:"total_ratings"`
+	AvgRating          float64         `json:"avg_rating"`
+	RatingDistribution map[int]int     `json:"rating_distribution"`
+	GenreStats         []UserGenreStat `json:"genre_stats"`
+	RatedMovies        []UserRatedItem `json:"rated_movies"`
 }

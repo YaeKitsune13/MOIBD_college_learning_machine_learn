@@ -8,7 +8,7 @@ import (
 	"movie-recommender/internal/models"
 )
 
-// GetUserCollaborative реализует вкладку #2: ML-модель (если есть артефакты) с фоллбэком на классический User-KNN
+// Вкладка «2. По пользователям»
 func (e *Engine) GetUserCollaborative(userID int, params models.RecParams) ([]models.MovieRecommendation, bool) {
 	e.mu.RLock()
 	targetUserRatings := e.userRatings[userID]
@@ -20,7 +20,6 @@ func (e *Engine) GetUserCollaborative(userID int, params models.RecParams) ([]mo
 		return e.coldStartFallback(params), true
 	}
 
-	// Если загружена обученная ML-модель (model_artifacts.json), используем её во 2-й вкладке
 	if hasMLModel {
 		recs := e.getUserMLRecommendations(userID, params)
 		if len(recs) > 0 {
@@ -120,7 +119,7 @@ func (e *Engine) GetUserCollaborative(userID int, params models.RecParams) ([]mo
 	return recommendations, false
 }
 
-// GetItemCollaborative реализует вкладку #3: Item-Based коллаборативную фильтрацию по общим зрителям
+// Вкладка «3. По фильмам»
 func (e *Engine) GetItemCollaborative(targetMovieID int, params models.RecParams) []models.MovieRecommendation {
 	e.mu.RLock()
 	defer e.mu.RUnlock()

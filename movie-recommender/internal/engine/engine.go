@@ -171,6 +171,96 @@ func (e *Engine) ReloadIndex() {
 		time.Since(startTime).Round(time.Millisecond), len(e.movies), e.totalRatings, len(e.users))
 }
 
+func (e *Engine) GetUserStats(userID int) models.UserStatsResponse {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	userName := fmt.Sprintf(models.FmtUserName, userID)
+	if u, ok := e.users[userID]; ok {
+		userName = u.Name
+	}
+
+	ratedMap := e.userRatings[userID]
+	dist := map[int]int{1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+
+	type genreAcc struct {
+		count int
+		sum   float64
+	}
+	gMap := make(map[string]*genreAcc)
+	ratedItems := make([]models.UserRatedItem, 0, len(ratedMap))
+
+	var totalSum float64
+	for movieID, rating := range ratedMap {
+		totalSum += rating
+		star := int(math.Round(rating))
+		if star < 1 {
+			star = 1
+		}
+		if star > 5 {
+			star = 5
+		}
+		dist[star]++
+
+		if m, exists := e.movies[movieID]; exists {
+			ratedItems = append(ratedItems, models.UserRatedItem{
+				MovieID: movieID,
+				Title:   m.Title,
+				Genres:  m.Genres,
+				Rating:  rating,
+			})
+
+			for _, g := range strings.Split(m.Genres, "|") {
+				if g == "" || g == models.NoGenresLabel {
+					continue
+				}
+				if _, ok := gMap[g]; !ok {
+					gMap[g] = &genreAcc{}
+				}
+				gMap[g].count++
+				gMap[g].sum += rating
+			}
+		}
+	}
+
+	var avgRating float64
+	if len(ratedMap) > 0 {
+		avgRating = round2(totalSum / float64(len(ratedMap)))
+	}
+
+	genreStats := make([]models.UserGenreStat, 0, len(gMap))
+	for g, acc := range gMap {
+		genreStats = append(genreStats, models.UserGenreStat{
+			Genre:     g,
+			Count:     acc.count,
+			AvgRating: round2(acc.sum / float64(acc.count)),
+		})
+	}
+	slices.SortFunc(genreStats, func(a, b models.UserGenreStat) int {
+		if a.Count != b.Count {
+			return cmp.Compare(b.Count, a.Count)
+		}
+		return cmp.Compare(b.AvgRating, a.AvgRating)
+	})
+
+	slices.SortFunc(ratedItems, func(a, b models.UserRatedItem) int {
+		if a.Rating != b.Rating {
+			return cmp.Compare(b.Rating, a.Rating)
+		}
+		return cmp.Compare(a.Title, b.Title)
+	})
+
+	return models.UserStatsResponse{
+		UserID:             userID,
+		UserName:           userName,
+		TotalRatings:       len(ratedMap),
+		AvgRating:          avgRating,
+		RatingDistribution: dist,
+		GenreStats:         genreStats,
+		RatedMovies:        ratedItems,
+	}
+}
+
 func (e *Engine) rebuildUserListLocked() {
 	e.userList = make([]models.User, 0, len(e.users))
 	for _, user := range e.users {

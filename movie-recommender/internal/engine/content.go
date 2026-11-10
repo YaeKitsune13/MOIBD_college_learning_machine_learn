@@ -4,12 +4,17 @@ import (
 	"cmp"
 	"fmt"
 	"math"
+	"regexp"
 	"slices"
+	"strings"
+	"unicode"
 
 	"movie-recommender/internal/models"
 )
 
-// GetTopMovies реализует вкладку #5: Взвешенный рейтинг Байеса (IMDB formula)
+var yearRegex = regexp.MustCompile(`\(\d{4}\)`)
+
+// получение самых 'топовых' фильмов
 func (e *Engine) GetTopMovies(limit int, bayesM float64) []models.MovieRecommendation {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
@@ -44,7 +49,7 @@ func (e *Engine) GetTopMovies(limit int, bayesM float64) []models.MovieRecommend
 	return recommendations
 }
 
-// GetSimilarByContent реализует вкладку #4: Поиск похожих фильмов по жанровым векторам
+// Получение по жанрам и названию
 func (e *Engine) GetSimilarByContent(targetMovieID int, params models.RecParams) []models.MovieRecommendation {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
@@ -53,6 +58,10 @@ func (e *Engine) GetSimilarByContent(targetMovieID int, params models.RecParams)
 	if !exists {
 		return nil
 	}
+	targetMovie := e.movies[targetMovieID]
+
+	genreWeight := 0.6
+	titleWeight := 0.4
 
 	recommendations := make([]models.MovieRecommendation, 0, 128)
 	for otherMovieID, otherGenreVector := range e.genreVectors {
@@ -60,12 +69,19 @@ func (e *Engine) GetSimilarByContent(targetMovieID int, params models.RecParams)
 			continue
 		}
 
+		otherMovie := e.movies[otherMovieID]
+
 		genreSimilarity := dotProduct(targetGenreVector, otherGenreVector)
-		if genreSimilarity >= params.MinSim {
+
+		titleSimilarity := calculateTitleSimilarity(targetMovie.Title, otherMovie.Title)
+
+		totalSimilarity := (genreSimilarity * genreWeight) + (titleSimilarity * titleWeight)
+
+		if totalSimilarity >= params.MinSim {
 			recommendations = append(recommendations, models.MovieRecommendation{
-				Movie:  e.movies[otherMovieID],
-				Score:  round2(genreSimilarity),
-				Reason: fmt.Sprintf(models.FmtReasonContent, genreSimilarity*100),
+				Movie:  otherMovie,
+				Score:  round2(totalSimilarity),
+				Reason: fmt.Sprintf(models.FmtReasonContent, totalSimilarity*100),
 			})
 		}
 	}
@@ -74,7 +90,7 @@ func (e *Engine) GetSimilarByContent(targetMovieID int, params models.RecParams)
 	return recommendations
 }
 
-// GetPersonalRecommendations реализует вкладку #1: Гибридный профиль жанровых предпочтений пользователя
+// получение персональных рекомендаций
 func (e *Engine) GetPersonalRecommendations(userID int, params models.RecParams) ([]models.MovieRecommendation, bool) {
 	e.mu.RLock()
 	targetUserRatings := e.userRatings[userID]
@@ -141,6 +157,9 @@ func (e *Engine) GetPersonalRecommendations(userID int, params models.RecParams)
 		}
 
 		votesCountV := float64(movie.RatingCount)
+		// Байесовское среднее (формула IMDb): балансирует оценку фильма и число голосов.
+		// Чем больше голосов (votesCountV), тем ближе итог к реальному рейтингу фильма (AvgRating).
+		// Чем меньше голосов, тем сильнее оценка «стягивается» к среднему по всей базе (globalAverageC).
 		bayesRating := (votesCountV/(votesCountV+smoothingM))*movie.AvgRating +
 			(smoothingM/(votesCountV+smoothingM))*globalAverageC
 
@@ -166,11 +185,37 @@ func (e *Engine) coldStartFallback(params models.RecParams) []models.MovieRecomm
 }
 
 func dotProduct(vecA, vecB []float64) float64 {
+	if len(vecA) != len(vecB) {
+		return 0
+	}
 	var sum float64
 	for i := range vecA {
 		sum += vecA[i] * vecB[i]
 	}
 	return sum
+}
+
+func calculateTitleSimilarity(title1, title2 string) float64 {
+	words1 := tokenize(title1)
+	words2 := tokenize(title2)
+
+	if len(words1) == 0 || len(words2) == 0 {
+		return 0.0
+	}
+
+	intersection := 0
+	for word := range words1 {
+		if words2[word] {
+			intersection++
+		}
+	}
+
+	minLen := len(words1)
+	if len(words2) < minLen {
+		minLen = len(words2)
+	}
+
+	return float64(intersection) / float64(minLen)
 }
 
 func normalizeVector(vec []float64, squareSum float64) {
@@ -198,4 +243,19 @@ func sortAndTrim(recs *[]models.MovieRecommendation, limit int) {
 	if len(list) > limit {
 		*recs = list[:limit]
 	}
+}
+
+func tokenize(text string) map[string]bool {
+	cleanText := yearRegex.ReplaceAllString(text, "")
+
+	words := make(map[string]bool)
+	f := func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+	}
+	for _, word := range strings.FieldsFunc(strings.ToLower(cleanText), f) {
+		if len([]rune(word)) > 2 {
+			words[word] = true
+		}
+	}
+	return words
 }

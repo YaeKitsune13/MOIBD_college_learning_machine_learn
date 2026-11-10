@@ -33,6 +33,15 @@ func RegisterRoutes(r *gin.Engine, db *sqlx.DB, eng *engine.Engine) {
 			c.JSON(http.StatusOK, eng.GetUsers(c.Query("q"), max(p.Limit, 150)))
 		})
 
+		api.GET("/users/:id/stats", func(c *gin.Context) {
+			id, err := strconv.Atoi(c.Param("id"))
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "некорректный id пользователя"})
+				return
+			}
+			c.JSON(http.StatusOK, eng.GetUserStats(id))
+		})
+
 		api.POST("/users", func(c *gin.Context) {
 			var req struct {
 				Name string `json:"name"`
