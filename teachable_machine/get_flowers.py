@@ -4,7 +4,7 @@ import shutil
 
 SRC = "flowers"
 CLASSES = ["daisy", "rose", "sunflower"]
-N_TRAIN, N_VAL = 40, 15
+N_TRAIN, N_VAL = 150, 50
 random.seed(42)
 
 for out in ("flowers_train", "flowers_validation"):
